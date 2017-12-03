@@ -1,10 +1,207 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8">
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0">
+
+    <meta name="keywords" content="geojson reducer, geojson simplifier, geojson simplify, geojson">
+    <meta name="description" content="GeoJson Reducer - NPM package to reduce the size of your GeoJson polyongs">
+
     <title>GeoJson Reducer</title>
+
+    <link href="https://fonts.googleapis.com/css?family=Playfair+Display" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css" integrity="sha512-07I2e+7D8p6he1SIM+1twR5TIrhUQn9+I6yjqD53JQjFiMf8EtC93ty0/5vJTZGF8aAocvHYNEDJajGdNx1IsQ==" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js" integrity="sha512-A7vV8IFfih/D732iSSKi20u/ooOfj/AGehOKq0f4vLT1Zr2Y+RX7C+w8A1gaSasGtRUZpF/NZgzSAu4/Gc41Lg==" crossorigin=""></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.js"></script>
+
+    <style media="screen">
+
+      body {
+        font-family: "Arial", sans-serif;
+        font-size: 12px;
+        color: #333;
+      }
+
+      .map-wrapper {
+        display: block;
+        text-align: center;
+      }
+
+      .map-notes {
+        display: block;
+        padding: 12px;
+        height: 112px;
+      }
+
+      .map-notes span {
+        display: block;
+        text-align: left;
+        width: 100%;
+        margin: 10px 2px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .map-notes span label {
+        display: inline-block;
+        text-align: left;
+        background: #4576d2;
+        color: white;
+        padding: 1px 8px;
+        border-radius: 2px;
+      }
+
+      .map-box {
+        vertical-align: top;
+        display: inline-block;
+        width: 47%;
+        background: #fffefe;
+        margin: 12px;
+        border: 1px solid #f1f1f1;
+        box-shadow: 0 2px 2px #0000000d;
+      }
+
+      .original-map,
+      .reduced-map {
+        display: inline-block;
+        width: 95%;
+        height: 350px;
+        margin: 12px auto;
+      }
+
+      @media only screen and (max-width: 770px) {
+        .map-box {
+          display: block;
+          width: 100%;
+          margin: 8px auto;
+        }
+      }
+
+      .map-heading-title {
+        display: block;
+        font-family: 'Playfair Display', serif;
+        text-align: center;
+        font-size: 32px;
+        margin: 24px;
+        margin-bottom: 4px;
+        text-shadow: 0 2px 5px #00000012;
+      }
+
+      .badges {
+        display: block;
+        text-align: center;
+      }
+
+    </style>
+
   </head>
   <body>
-    GeoJson Reducer
+
+    <div class="map-heading">
+      <div class="map-heading-title">
+        geojson-reducer
+      </div>
+      <div class="badges">
+        <span> <img src="https://badge.fury.io/js/geojson-reducer.svg"> </span>
+      </div>
+    </div>
+
+    <div class="map-wrapper">
+
+      <span class="map-box">
+        <div id="original-map" class="original-map"></div>
+        <div class="map-notes">
+          <span>
+            <label>File</label> netherlands-data.geoJson
+          </span>
+          <span>
+            <label>File size</label> 279KB
+          </span>
+          <span>
+            <label>Polygon points</label> 2,265
+          </span>
+        </div>
+      </span>
+
+      <span class="map-box">
+        <div id="reduced-map" class="reduced-map"></div>
+        <div class="map-notes">
+          <span>
+            <label>File</label> netherlands-data-sm.geoJson
+          </span>
+          <span>
+            <label>File size</label> 68KB
+          </span>
+          <span>
+            <label>Polygon points</label> 1,571
+          </span>
+          <span>
+            Over 40% of coordinates removed with geojson-reducer.
+          </span>
+        </div>
+      </span>
+
+    </div>
+
+
+    <script type="text/javascript">
+
+      function style(feature) {
+        return {
+          fillColor: '#4576d2',
+          weight: 2,
+          opacity: 1,
+          color: 'white',
+          dashArray: '3',
+          fillOpacity: 0.7
+        };
+      }
+
+      let originalMap = L.map('original-map').setView([52.189510, 5.284424], 6)
+      let reducedMap = L.map('reduced-map').setView([52.189510, 5.284424], 6)
+
+
+      L.tileLayer('http://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png', {
+      	attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
+        subdomains: 'abcd',
+      	maxZoom: 19
+      }).addTo(originalMap)
+
+      L.tileLayer('http://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png', {
+      	attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
+        subdomains: 'abcd',
+      	maxZoom: 19
+      }).addTo(reducedMap)
+
+      $.ajax({
+          url: './data/netherlands-data.json',
+          type: 'GET',
+          success: function (data, status) {
+            console.log(data)
+            L.geoJson(data, {
+              style: style
+            }).addTo(originalMap);
+          },
+          error: function (xhr, desc, err) {
+
+          }
+        })
+
+      $.ajax({
+        url: './data/netherlands-data-sm.json',
+        type: 'GET',
+        success: function (data, status) {
+          console.log(data)
+          L.geoJson(data, {
+            style: style
+          }).addTo(reducedMap);
+        },
+        error: function (xhr, desc, err) {
+
+        }
+      })
+
+
+    </script>
   </body>
 </html>
