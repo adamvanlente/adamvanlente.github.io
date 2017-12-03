@@ -87,9 +87,21 @@
         text-shadow: 0 2px 5px #00000012;
       }
 
-      .badges {
+      .map-subheading {
         display: block;
+        font-family: 'Playfair Display', serif;
         text-align: center;
+        font-size: 22px;
+        margin-top: 32px;
+      }
+
+      .summary {
+        font-family: "Arial", sans-serif;
+        font-size: 12px;
+        text-align: left;
+        width: 80%;
+        margin: 0 auto;
+        max-width: 600px;
       }
 
     </style>
@@ -99,14 +111,20 @@
 
     <div class="map-heading">
       <div class="map-heading-title">
-        geojson-reducer
+        geojson-reducer <img src="https://badge.fury.io/js/geojson-reducer.svg">
       </div>
-      <div class="badges">
-        <span> <img src="https://badge.fury.io/js/geojson-reducer.svg"> </span>
+      <div class="summary">
+        <p>geojson-reducer is a node package that simplifies a Polygon or MultiPolyon feature within a GeoJson object.</p>
+        <p>This package helps ease the load time of geospatial web applications that are displaying complex Polygons. These Polygons may have thousands of coordinates, many of which may not be critical to achieve the basic shape of the Polygon. Perhaps the Polygons load slowly, or perhaps a file being requested is simply too large.</p>
+        <p>geojson-reducer takes a simple approach, by ejecting coordinates that it considers non-essential to the shape of the Polygon. The result is that the data set is reduced - by up to 50% if possible - while providing an identical experience to the end user of the application or data.</p>
       </div>
     </div>
 
     <div class="map-wrapper">
+
+      <div class="map-subheading">
+        Netherlands demo
+      </div>
 
       <span class="map-box">
         <div id="original-map" class="original-map"></div>
@@ -141,6 +159,45 @@
         </div>
       </span>
 
+
+      <div class="map-subheading">
+        Iraq demo
+      </div>
+
+      <span class="map-box">
+        <div id="iraq-original-map" class="original-map"></div>
+        <div class="map-notes">
+          <span>
+            <label>File</label> iraq-data.geoJson
+          </span>
+          <span>
+            <label>File size</label> 913KB
+          </span>
+          <span>
+            <label>Polygon points</label> 20,059
+          </span>
+        </div>
+      </span>
+
+      <span class="map-box">
+        <div id="iraq-reduced-map" class="reduced-map"></div>
+        <div class="map-notes">
+          <span>
+            <label>File</label> iraq-data-sm.geoJson
+          </span>
+          <span>
+            <label>File size</label> 612KB
+          </span>
+          <span>
+            <label>Polygon points</label> 11,182
+          </span>
+          <span>
+            About 44% of coordinates removed with geojson-reducer.
+          </span>
+        </div>
+      </span>
+
+
     </div>
 
 
@@ -159,48 +216,49 @@
 
       let originalMap = L.map('original-map').setView([52.189510, 5.284424], 6)
       let reducedMap = L.map('reduced-map').setView([52.189510, 5.284424], 6)
+      let iraqOriginalMap = L.map('iraq-original-map').setView([33.224782, 43.676952], 5)
+      let iraqReducedMap = L.map('iraq-reduced-map').setView([33.224782, 43.676952], 5)
 
+      let maps = [originalMap, reducedMap, iraqOriginalMap, iraqReducedMap]
 
-      L.tileLayer('http://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png', {
-      	attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
-        subdomains: 'abcd',
-      	maxZoom: 19
-      }).addTo(originalMap)
-
-      L.tileLayer('http://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png', {
-      	attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
-        subdomains: 'abcd',
-      	maxZoom: 19
-      }).addTo(reducedMap)
-
-      $.ajax({
-          url: './data/netherlands-data.json',
-          type: 'GET',
-          success: function (data, status) {
-            console.log(data)
-            L.geoJson(data, {
-              style: style
-            }).addTo(originalMap);
-          },
-          error: function (xhr, desc, err) {
-
-          }
-        })
-
-      $.ajax({
-        url: './data/netherlands-data-sm.json',
-        type: 'GET',
-        success: function (data, status) {
-          console.log(data)
-          L.geoJson(data, {
-            style: style
-          }).addTo(reducedMap);
-        },
-        error: function (xhr, desc, err) {
-
-        }
+      maps.map((item) => {
+        L.tileLayer('http://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png', {
+        	attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
+          subdomains: 'abcd',
+        	maxZoom: 19
+        }).addTo(item)
       })
 
+      let dataSources = [
+        {
+          src: './data/netherlands-data.json',
+          destMap: originalMap
+        },
+        {
+          src: './data/netherlands-data-sm.json',
+          destMap: reducedMap
+        },
+        {
+          src: './data/iraq-data.json',
+          destMap: iraqOriginalMap
+        },
+        {
+          src: './data/iraq-data-sm.json',
+          destMap: iraqReducedMap
+        }
+      ]
+
+      dataSources.map((item) => {
+        $.ajax({
+          url: item.src,
+          type: 'GET',
+          success: function (data, status) {
+              L.geoJson(data, {
+              style: style
+            }).addTo(item.destMap);
+          }
+        })
+      })
 
     </script>
   </body>
